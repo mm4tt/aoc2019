@@ -1,6 +1,8 @@
 package intcode
 
-import "fmt"
+import (
+	"github.com/go-errors/errors"
+)
 
 func NewComputer() Computer {
 	instrMap := make(map[int]*instruction)
@@ -15,21 +17,25 @@ func NewComputer() Computer {
 type computer struct {
 	instructions map[int]*instruction
 
-	memory []int
-	i      int
-	stopCh chan struct{}
+	memory  []int
+	i       int
+	stopCh  chan struct{}
+	inputCh chan int
+	outputs []int
 }
 
-func (c *computer) Load(input Input) {
+func (c *computer) Load(input *Input) {
 	c.memory = append(input.Memory[:0:0], input.Memory...)
 	c.i = 0
 	c.stopCh = make(chan struct{})
-	// TODO: inputs
+	c.inputCh = make(chan int, len(input.Inputs))
+	for _, i := range input.Inputs {
+		c.inputCh <- i
+	}
 }
 
-func (c *computer) Run() (Output, error) {
-	output := Output{}
-
+func (c *computer) Run() (*Output, error) {
+	c.outputs = []int{}
 loop:
 	for ; ; {
 		select {
@@ -39,15 +45,21 @@ loop:
 		}
 
 		opCode := c.memory[c.i]
-		instr, ok := c.instructions[opCode]
+		instr, ok := c.instructions[opCode%100]
 		if !ok {
-			return output, fmt.Errorf("invalid opCode: %d", opCode)
+			return nil, errors.Errorf("invalid opCode: %d", opCode)
 		}
-		instr.execute(c, c.memory[c.i+1:c.i+1+instr.numParams])
+		params, err := c.computeParams(opCode, instr)
+		if err != nil {
+			return nil, err
+		}
 		c.i += 1 + instr.numParams
-	}
+		if err := instr.execute(c, params); err != nil {
+			return nil, err
+		}
 
-	return output, nil
+	}
+	return &Output{Outputs: c.outputs}, nil
 }
 
 func (c *computer) Set(i, val int) {
@@ -60,4 +72,35 @@ func (c *computer) Get(i int) int {
 
 func (c *computer) stop() {
 	close(c.stopCh)
+}
+
+func (c *computer) input() <-chan int {
+	return c.inputCh
+}
+
+func (c *computer) output(o int) {
+	c.outputs = append(c.outputs, o)
+}
+
+func (c *computer) setInstructionPointer(i int) {
+	c.i = i
+}
+
+
+func (c *computer) computeParams(opCode int, instr *instruction) ([]int, error) {
+	code := opCode / 100
+	params := make([]int, instr.numParams)
+	for j := 0; j < instr.numParams; j++ {
+		mode := instr.overrideMode(j, code%10)
+		params[j] = c.memory[c.i+1+j]
+		switch mode {
+		case indirect:
+			params[j] = c.memory[params[j]]
+		case direct:
+		default:
+			return nil, errors.Errorf("invalid opCode: %d", opCode)
+		}
+		code /= 10
+	}
+	return params, nil
 }
