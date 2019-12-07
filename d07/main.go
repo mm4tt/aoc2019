@@ -65,20 +65,13 @@ func main() {
 
 				output := cpu.RunAsync()
 				go func(i int) {
-					for ; ; {
-						select {
-						case o, ok := <-output.OutputCh:
-							if !ok {
-								wg.Done()
-								return
-							}
-							if i == 4 {
-								lastOutput = o
-							}
-							chans[(i+1)%5] <- o
+					for o := range output.OutputCh {
+						if i == 4 {
+							lastOutput = o
 						}
+						chans[(i+1)%5] <- o
 					}
-
+					wg.Done()
 				}(i)
 			}
 			chans[0] <- 0
