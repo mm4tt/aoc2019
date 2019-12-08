@@ -2,6 +2,8 @@ package intcode
 
 import (
 	"github.com/go-errors/errors"
+	"github.com/golang-collections/collections/queue"
+	"sync"
 )
 
 func NewComputer() Computer {
@@ -10,7 +12,8 @@ func NewComputer() Computer {
 		instrMap[instr.code] = instr
 	}
 	return &computer{
-		instructions: instrMap,
+		instructions:   instrMap,
+		inputQueueCond: sync.NewCond(new(sync.Mutex)),
 	}
 }
 
@@ -20,49 +23,50 @@ type computer struct {
 	memory   []int
 	i        int
 	stopCh   chan struct{}
-	inputCh  chan int
 	outputCh chan int
+	linkedTo Computer
+
+	// Ideally, we'd have a blocking queue...
+	inputQueue     *queue.Queue
+	inputQueueCond *sync.Cond
 }
 
-func (c *computer) Load(input *Input) {
-	c.memory = append(input.Memory[:0:0], input.Memory...)
+func (c *computer) LoadMemory(memory []int) {
+	c.memory = append(memory[:0:0], memory...)
 	c.i = 0
-	c.stopCh = make(chan struct{})
+	func() {
+		c.inputQueueCond.L.Lock()
+		defer c.inputQueueCond.L.Unlock()
+		c.inputQueue = queue.New()
+	}()
+}
 
-	if input.InputCh != nil {
-		c.inputCh = input.InputCh
-	} else {
-		c.inputCh = make(chan int, len(input.Inputs))
-		for _, i := range input.Inputs {
-			c.inputCh <- i
-		}
-		close(c.inputCh)
+func (c *computer) Input(input ...int) {
+	for _, i := range input {
+		func(i int) {
+			c.inputQueueCond.L.Lock()
+			defer c.inputQueueCond.L.Unlock()
+			c.inputQueue.Enqueue(i)
+			if c.inputQueue.Len() == 1 {
+				c.inputQueueCond.Signal()
+			}
+		}(i)
 	}
+}
+
+func (c *computer) LinkTo(to Computer) {
+	c.linkedTo = to
 }
 
 func (c *computer) Run() (*Output, error) {
-	asyncOutput := c.RunAsync()
-	output := &Output{}
-loop:
-	for ; ; {
-		select {
-		case o, ok := <-asyncOutput.OutputCh:
-			if !ok {
-				break loop
-			}
-			output.Outputs = append(output.Outputs, o)
-		case err := <-asyncOutput.ErrorCh:
-			return nil, err
-		}
-	}
-
-	return output, nil
+	return c.RunAsync().Finalize()
 }
 
-func (c *computer) RunAsync() *AsyncOutput {
+func (c *computer) RunAsync() AsyncOutput {
 	c.outputCh = make(chan int)
 	errCh := make(chan error)
-	output := &AsyncOutput{OutputCh: c.outputCh, ErrorCh: errCh}
+	output := &asyncOutput{outputCh: c.outputCh, errorCh: errCh}
+	c.stopCh = make(chan struct{})
 	go func() {
 	loop:
 		for ; ; {
@@ -94,24 +98,36 @@ func (c *computer) RunAsync() *AsyncOutput {
 	return output
 }
 
-func (c *computer) Set(i, val int) {
-	c.memory[i] = val
-}
-
 func (c *computer) Get(i int) int {
 	return c.memory[i]
+}
+
+func (c *computer) Set(i, val int) {
+	c.set(i, val)
+}
+
+func (c *computer) set(i, val int) {
+	c.memory[i] = val
 }
 
 func (c *computer) stop() {
 	close(c.stopCh)
 }
 
-func (c *computer) input() <-chan int {
-	return c.inputCh
+func (c *computer) input() int {
+	c.inputQueueCond.L.Lock()
+	defer c.inputQueueCond.L.Unlock()
+	if c.inputQueue.Len() == 0 {
+		c.inputQueueCond.Wait()
+	}
+	return c.inputQueue.Dequeue().(int)
 }
 
 func (c *computer) output(o int) {
 	c.outputCh <- o
+	if c.linkedTo != nil {
+		c.linkedTo.Input(o)
+	}
 }
 
 func (c *computer) setInstructionPointer(i int) {

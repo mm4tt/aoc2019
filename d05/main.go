@@ -11,10 +11,8 @@ func main() {
 
 	c := intcode.NewComputer()
 
-	c.Load(&intcode.Input{
-		Memory: input,
-		Inputs: []int{1},
-	})
+	c.LoadMemory(input)
+	c.Input(1)
 	output, err := c.Run()
 	if err != nil {
 		fmt.Println(err)
@@ -26,11 +24,9 @@ func main() {
 	}
 	fmt.Println(output)
 
-	
-	c.Load(&intcode.Input{
-		Memory: input,
-		Inputs: []int{5},
-	})
+
+	c.LoadMemory(input)
+	c.Input(5)
 	output, err = c.Run()
 	if err != nil {
 		fmt.Println(err)

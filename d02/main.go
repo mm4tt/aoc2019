@@ -10,7 +10,7 @@ func main() {
 	//input := []int{1,9,10,3,2,3,11,0,99,30,40,50}
 
 	c := intcode.NewComputer()
-	c.Load(&intcode.Input{Memory: input})
+	c.LoadMemory(input)
 	c.Set(1, 12)
 	c.Set(2, 2)
 	c.Run()
@@ -20,7 +20,7 @@ func main() {
 	func() {
 		for noun := 0; noun < 100; noun++ {
 			for verb := 0; verb < 100; verb++ {
-				c.Load(&intcode.Input{Memory: input})
+				c.LoadMemory(input)
 				c.Set(1, noun)
 				c.Set(2, verb)
 				c.Run()
