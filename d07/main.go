@@ -5,7 +5,6 @@ import (
 	"github.com/mm4tt/aoc2019/intcode"
 	"github.com/mm4tt/aoc2019/util"
 	"log"
-	"sync"
 )
 
 func main() {
@@ -49,34 +48,35 @@ func main() {
 		max := 0
 
 		for p := range permutations {
+			var b util.Barrier
 			chans := [5]chan int{}
-			var wg sync.WaitGroup
-			wg.Add(5)
 			lastOutput := 0
 
 			for i, v := range p {
-				chans[i] = make(chan int, 1)
-				chans[i] <- v
-				cpu := intcode.NewComputer()
-				cpu.Load(&intcode.Input{
-					Memory:  input,
-					InputCh: chans[i],
-				})
+				func(i, v int) {
+					chans[i] = make(chan int, 1)
 
-				output := cpu.RunAsync()
-				go func(i int) {
-					for o := range output.OutputCh {
-						if i == 4 {
-							lastOutput = o
+					chans[i] <- v
+					cpu := intcode.NewComputer()
+					cpu.Load(&intcode.Input{
+						Memory:  input,
+						InputCh: chans[i],
+					})
+
+					output := cpu.RunAsync()
+					b.Run(func() {
+						for o := range output.OutputCh {
+							if i == 4 {
+								lastOutput = o
+							}
+							chans[(i+1)%5] <- o
 						}
-						chans[(i+1)%5] <- o
-					}
-					wg.Done()
-				}(i)
+					})
+				}(i, v)
 			}
 			chans[0] <- 0
 
-			wg.Wait()
+			b.Wait()
 			if lastOutput > max {
 				max = lastOutput
 			}
