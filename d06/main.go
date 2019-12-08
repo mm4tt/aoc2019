@@ -1,33 +1,25 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"github.com/mm4tt/aoc2019/util"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/golang-collections/collections/stack"
 )
 
 func main() {
-	inputFile, err := os.Open(os.ExpandEnv("$GOPATH/src/github.com/mm4tt/aoc2019/d06/input.txt"))
+	lines, err := util.ReadLines("$GOPATH/src/github.com/mm4tt/aoc2019/d06/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	g, rg := make(map[string][]string), make(map[string]string)
-
-	scanner := bufio.NewScanner(inputFile)
-	for scanner.Scan() {
-		line := scanner.Text()
+	for line := range lines {
 		objects := strings.Split(line, ")")
 		a, b := objects[0], objects[1]
 		g[a] = append(g[a], b)
 		rg[b] = a
-	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
 	}
 
 	// Part 1.
@@ -63,6 +55,7 @@ func main() {
 			n = rg[n]
 			if j, ok := s[n]; ok {
 				fmt.Println(i + j)
+				return
 			}
 		}
 		panic("no common ancestor...")

@@ -26,6 +26,7 @@ func ReadLines(filepath string) (<-chan string, error) {
 		for scanner.Scan() {
 			output <- scanner.Text()
 		}
+		close(output)
 	}()
 	return output, nil
 }
