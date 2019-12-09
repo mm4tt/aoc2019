@@ -103,10 +103,6 @@ func (c *computer) Get(i int) int {
 }
 
 func (c *computer) Set(i, val int) {
-	c.set(i, val)
-}
-
-func (c *computer) set(i, val int) {
 	c.memory[i] = val
 }
 
@@ -134,15 +130,15 @@ func (c *computer) setInstructionPointer(i int) {
 	c.i = i
 }
 
-func (c *computer) computeParams(opCode int, instr *instruction) ([]int, error) {
+func (c *computer) computeParams(opCode int, instr *instruction) ([]*int, error) {
 	code := opCode / 100
-	params := make([]int, instr.numParams)
+	params := make([]*int, instr.numParams)
 	for j := 0; j < instr.numParams; j++ {
-		mode := instr.overrideMode(j, code%10)
-		params[j] = c.memory[c.i+1+j]
+		mode := code%10
+		params[j] = &c.memory[c.i+1+j]
 		switch mode {
 		case indirect:
-			params[j] = c.memory[params[j]]
+			params[j] = &c.memory[*params[j]]
 		case direct:
 		default:
 			return nil, errors.Errorf("invalid opCode: %d", opCode)
