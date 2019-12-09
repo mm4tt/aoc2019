@@ -9,6 +9,7 @@ var instructions = []*instruction{
 	jumpIfFalse,
 	lessThan,
 	equals,
+	adjustRelativeBase,
 	stop,
 }
 
@@ -92,6 +93,15 @@ var equals = &instruction{
 			val = 1
 		}
 		*params[2] = val
+		return nil
+	},
+}
+
+var adjustRelativeBase = &instruction{
+	code:      9,
+	numParams: 1,
+	execute: func(c instructionContext, params []*int) error {
+		c.incRelativeBase(*params[0])
 		return nil
 	},
 }

@@ -20,11 +20,12 @@ func NewComputer() Computer {
 type computer struct {
 	instructions map[int]*instruction
 
-	memory   []int
-	i        int
-	stopCh   chan struct{}
-	outputCh chan int
-	linkedTo Computer
+	memory       []int
+	i            int
+	relativeBase int
+	stopCh       chan struct{}
+	outputCh     chan int
+	linkedTo     Computer
 
 	// Ideally, we'd have a blocking queue...
 	inputQueue     *queue.Queue
@@ -33,7 +34,7 @@ type computer struct {
 
 func (c *computer) LoadMemory(memory []int) {
 	c.memory = append(memory[:0:0], memory...)
-	c.i = 0
+	c.i, c.relativeBase = 0, 0
 	func() {
 		c.inputQueueCond.L.Lock()
 		defer c.inputQueueCond.L.Unlock()
@@ -130,20 +131,44 @@ func (c *computer) setInstructionPointer(i int) {
 	c.i = i
 }
 
+func (c *computer) incRelativeBase(i int) {
+	c.relativeBase += i
+}
+
 func (c *computer) computeParams(opCode int, instr *instruction) ([]*int, error) {
 	code := opCode / 100
 	params := make([]*int, instr.numParams)
 	for j := 0; j < instr.numParams; j++ {
-		mode := code%10
+		mode := code % 10
 		params[j] = &c.memory[c.i+1+j]
 		switch mode {
-		case indirect:
-			params[j] = &c.memory[*params[j]]
 		case direct:
+		case indirect:
+			ptr, err := c.memoryPtr(*params[j])
+			if err != nil {
+				return nil, err
+			}
+			params[j] = ptr
+		case relative:
+			ptr, err := c.memoryPtr(c.relativeBase + *params[j])
+			if err != nil {
+				return nil, err
+			}
+			params[j] = ptr
 		default:
 			return nil, errors.Errorf("invalid opCode: %d", opCode)
 		}
 		code /= 10
 	}
 	return params, nil
+}
+
+func (c *computer) memoryPtr(i int) (*int, error) {
+	if i < 0 {
+		return nil, errors.Errorf("negative memory index: %d", i)
+	}
+	if i >= len(c.memory) {
+		c.memory = append(c.memory, make([]int, i - len(c.memory) + 1)...)
+	}
+	return &c.memory[i], nil
 }

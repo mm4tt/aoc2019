@@ -11,4 +11,5 @@ type instructionContext interface {
 	input() int
 	output(int)
 	setInstructionPointer(int)
+	incRelativeBase(int)
 }
