@@ -16,7 +16,7 @@ func (p *point) Add(p1 point) {
 	p.x, p.y = p.x+p1.x, p.y+p1.y
 }
 
-func (p *point) Norm() uint {
+func (p *point) Norm() int {
 	return util.Abs(p.x) + util.Abs(p.y)
 }
 
