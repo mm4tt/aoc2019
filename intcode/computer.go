@@ -91,7 +91,7 @@ func (c *computer) RunAsync() AsyncOutput {
 			c.i += 1 + instr.numParams
 			if err := instr.execute(c, params); err != nil {
 				errCh <- err
-				return
+				break
 			}
 		}
 		close(c.outputCh)
