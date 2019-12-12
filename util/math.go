@@ -11,6 +11,14 @@ func GCD(a, b int) int {
 	return Abs(a)
 }
 
+func LMC(a ...int) int {
+	lcm := a[0]
+	for _, b := range a[1:] {
+		lcm = lcm * b / GCD(lcm, b)
+	}
+	return lcm
+}
+
 func Abs(a int) int {
 	if a < 0 {
 		a = -a
