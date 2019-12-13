@@ -1,8 +1,9 @@
 package intcode
 
 type asyncOutput struct {
-	errorCh  <-chan error
-	outputCh <-chan int
+	errorCh       <-chan error
+	outputCh      <-chan int
+	inputPromptCh <-chan struct{}
 }
 
 func (a *asyncOutput) Finalize() (*Output, error) {
@@ -22,17 +23,19 @@ loop:
 	return output, nil
 }
 
-func (a *asyncOutput) Process(f func(o int, err error)) {
+func (a *asyncOutput) Process(f func(AsyncProcessEvent)) {
 	for ; ; {
 		select {
 		case o, ok := <-a.outputCh:
 			if !ok {
 				return
 			}
-			f(o, nil)
+			f(AsyncProcessEvent{o, nil, false})
 		case err := <-a.errorCh:
-			f(0, err)
+			f(AsyncProcessEvent{0, err, false})
 			return
+		case <-a.inputPromptCh:
+			f(AsyncProcessEvent{0, nil, true})
 		}
 	}
 }

@@ -33,23 +33,23 @@ func main() {
 		dir := util.Point2D{0, -1}
 		outputMode := color
 		c.Input(hull[p])
-		async.Process(func(o int, err error) {
-			if err != nil {
-				log.Fatal(err)
+		async.Process(func(e intcode.AsyncProcessEvent) {
+			if e.Err != nil {
+				log.Fatal(e.Err)
 				return
 			}
 			switch outputMode {
 			case color:
-				hull[p] = o
+				hull[p] = e.Output
 				outputMode = move
 			case move:
-				switch o {
+				switch e.Output {
 				case left:
 					dir = dir.RotateLeft()
 				case right:
 					dir = dir.RotateRight()
 				default:
-					panic(fmt.Sprint("invalid direction: %v", o))
+					panic(fmt.Sprint("invalid direction: %v", e.Output))
 				}
 				p = p.Add(dir)
 				c.Input(hull[p])
@@ -66,5 +66,5 @@ func main() {
 
 	// Part 2.
 	hull := f(white)
-	util.Draw(hull)
+	util.Draw(hull, map[int]rune{0: ' ', 1: '#'})
 }

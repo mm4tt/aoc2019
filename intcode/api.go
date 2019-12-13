@@ -23,5 +23,11 @@ type Output struct {
 
 type AsyncOutput interface {
 	Finalize() (*Output, error)
-	Process(f func(output int, err error))
+	Process(f func(AsyncProcessEvent))
+}
+
+type AsyncProcessEvent struct {
+	Output      int
+	Err         error
+	InputPrompt bool
 }

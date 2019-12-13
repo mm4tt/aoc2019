@@ -32,3 +32,10 @@ func Sgn(a float64) float64 {
 	}
 	return a / math.Abs(a)
 }
+
+func SgnI(a int) int {
+	if a == 0 {
+		return 0
+	}
+	return a / Abs(a)
+}

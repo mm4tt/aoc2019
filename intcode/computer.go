@@ -30,6 +30,7 @@ type computer struct {
 	// Ideally, we'd have a blocking queue...
 	inputQueue     *queue.Queue
 	inputQueueCond *sync.Cond
+	inputPromptCh  chan struct{}
 }
 
 func (c *computer) LoadMemory(memory []int) {
@@ -39,6 +40,7 @@ func (c *computer) LoadMemory(memory []int) {
 		c.inputQueueCond.L.Lock()
 		defer c.inputQueueCond.L.Unlock()
 		c.inputQueue = queue.New()
+		c.inputPromptCh = make(chan struct{}, 1)
 	}()
 }
 
@@ -49,6 +51,10 @@ func (c *computer) Input(input ...int) {
 			defer c.inputQueueCond.L.Unlock()
 			c.inputQueue.Enqueue(i)
 			if c.inputQueue.Len() == 1 {
+				select {
+				case <-c.inputPromptCh:
+				default:
+				}
 				c.inputQueueCond.Signal()
 			}
 		}(i)
@@ -66,7 +72,7 @@ func (c *computer) Run() (*Output, error) {
 func (c *computer) RunAsync() AsyncOutput {
 	c.outputCh = make(chan int)
 	errCh := make(chan error)
-	output := &asyncOutput{outputCh: c.outputCh, errorCh: errCh}
+	output := &asyncOutput{outputCh: c.outputCh, errorCh: errCh, inputPromptCh: c.inputPromptCh}
 	c.stopCh = make(chan struct{})
 	go func() {
 	loop:
@@ -115,6 +121,10 @@ func (c *computer) input() int {
 	c.inputQueueCond.L.Lock()
 	defer c.inputQueueCond.L.Unlock()
 	if c.inputQueue.Len() == 0 {
+		select {
+		case c.inputPromptCh <- struct{}{}:
+		default:
+		}
 		c.inputQueueCond.Wait()
 	}
 	return c.inputQueue.Dequeue().(int)
@@ -168,7 +178,7 @@ func (c *computer) memoryPtr(i int) (*int, error) {
 		return nil, errors.Errorf("negative memory index: %d", i)
 	}
 	if i >= len(c.memory) {
-		c.memory = append(c.memory, make([]int, i - len(c.memory) + 1)...)
+		c.memory = append(c.memory, make([]int, i-len(c.memory)+1)...)
 	}
 	return &c.memory[i], nil
 }

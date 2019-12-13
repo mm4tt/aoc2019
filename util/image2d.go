@@ -2,18 +2,18 @@ package util
 
 import "fmt"
 
-func Draw(m map[Point2D]int) {
-	xMin, xMax, yMin, yMax := getBoundaries(m)
+func Draw(board map[Point2D]int, mapping map[int]rune) {
+	xMin, xMax, yMin, yMax := getBoundaries(board)
 	n := xMax - xMin + 1
 	line := make([]rune, n)
 	for y := yMin; y <= yMax; y++ {
 		for x := xMin; x <= xMax; x++ {
 			p := Point2D{x, y}
-			if  m[p] == 0 {
-				line[x - xMin] = ' '
-			} else {
-				line[x - xMin] = '#'
+			c, ok := mapping[board[p]]
+			if !ok {
+				c = ' '
 			}
+			line[x-xMin] = c
 		}
 		fmt.Println(string(line))
 	}
