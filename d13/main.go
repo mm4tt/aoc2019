@@ -62,7 +62,6 @@ func main() {
 			return -1
 		}
 
-
 		c.Input(0, -1)
 		async.Process(func(e intcode.AsyncProcessEvent) {
 			if e.Err != nil {
@@ -71,8 +70,7 @@ func main() {
 			if e.InputPrompt {
 				draw(board)
 				fmt.Println("Points: ", points)
-				m := nextMove()
-				c.Input(m)
+				c.Input(nextMove())
 				return
 			}
 			switch mode {
@@ -99,9 +97,6 @@ func main() {
 		draw(board)
 		fmt.Println("Points: ", points)
 	}()
-
-	// 27 * nBlock
-
 }
 
 func draw(board map[util.Point2D]int) {
