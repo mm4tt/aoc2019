@@ -39,3 +39,21 @@ func SgnI(a int) int {
 	}
 	return a / Abs(a)
 }
+
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func Ceil(a, b int) int {
+	return int(math.Ceil(float64(a) / float64(b)))
+}
