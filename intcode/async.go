@@ -30,12 +30,12 @@ func (a *asyncOutput) Process(f func(AsyncProcessEvent)) {
 			if !ok {
 				return
 			}
-			f(AsyncProcessEvent{o, nil, false})
+			f(AsyncProcessEvent{OutputEvent, o, nil, false})
 		case err := <-a.errorCh:
-			f(AsyncProcessEvent{0, err, false})
+			f(AsyncProcessEvent{ErrorEvent, 0, err, false})
 			return
 		case <-a.inputPromptCh:
-			f(AsyncProcessEvent{0, nil, true})
+			f(AsyncProcessEvent{InputPromptEvent, 0, nil, true})
 		}
 	}
 }

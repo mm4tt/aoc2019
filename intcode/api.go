@@ -27,7 +27,17 @@ type AsyncOutput interface {
 }
 
 type AsyncProcessEvent struct {
+	Type asyncProcessEventType
+
 	Output      int
 	Err         error
 	InputPrompt bool
 }
+
+type asyncProcessEventType int
+
+const (
+	ErrorEvent asyncProcessEventType = iota
+	OutputEvent
+	InputPromptEvent
+)
