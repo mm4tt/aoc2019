@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 func ReadString(filepath string) (string, error) {
@@ -15,8 +16,8 @@ func ReadString(filepath string) (string, error) {
 	return string(buffer), err
 }
 
-func ReadLines(filepath string) (<-chan string, error) {
-	inputFile, err := os.Open(os.ExpandEnv(filepath))
+func ReadLines(relativePath string) (<-chan string, error) {
+	inputFile, err := os.Open(os.ExpandEnv(filepath.Join("$GOPATH/src/github.com/mm4tt/aoc2019/", relativePath)))
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	inputLines, err := util.ReadLines("$GOPATH/src/github.com/mm4tt/aoc2019/d10/input.txt")
+	inputLines, err := util.ReadLines("d10/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,7 +63,7 @@ func main() {
 	fmt.Println(len(angles))
 
 	a := angleToAsteroid[angles[199]]
-	fmt.Println(a.X * 100 + a.Y)
+	fmt.Println(a.X*100 + a.Y)
 }
 
 type asteroid struct {

@@ -24,7 +24,7 @@ const (
 )
 
 func main() {
-	lines, err := util.ReadLines("$GOPATH/src/github.com/mm4tt/aoc2019/d14/input.txt")
+	lines, err := util.ReadLines("d14/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}

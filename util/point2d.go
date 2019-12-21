@@ -15,3 +15,7 @@ func (p *Point2D) RotateLeft() Point2D {
 func (p *Point2D) RotateRight() Point2D {
 	return Point2D{-p.Y, p.X}
 }
+
+func (p *Point2D) Dist(p2 Point2D) int {
+	return Abs(p.X - p2.X) + Abs(p.Y - p2.Y)
+}

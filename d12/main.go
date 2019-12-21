@@ -10,7 +10,7 @@ import (
 
 func main() {
 	nSteps := 1000
-	lines, err := util.ReadLines("$GOPATH/src/github.com/mm4tt/aoc2019/d12/input.txt")
+	lines, err := util.ReadLines("d12/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
