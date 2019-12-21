@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	lines, err := util.ReadLines("d18/input0.txt")
+	lines, err := util.ReadLines("d18/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,9 +25,12 @@ func main() {
 	fmt.Println("Board is tree? ", b.isTree())
 
 	deps := b.processDeps()
-	for from, tos := range deps {
-		fmt.Printf("%c -> %v\n", from, string(tos))
-	}
+	fmt.Println("Deps before compaction")
+	printDeps(deps)
+
+	deps = compactDeps(b, deps)
+	fmt.Println("Deps after compaction")
+	printDeps(deps)
 
 	dists := b.calculateDists()
 	/*
@@ -46,6 +49,12 @@ const (
 	EMPTY = '.'
 	WALL  = '#'
 )
+
+func printDeps(deps map[rune][]rune) {
+	for from, tos := range deps {
+		fmt.Printf("%c -> %v\n", from, string(tos))
+	}
+}
 
 type Board struct {
 	X, Y  int
@@ -247,6 +256,37 @@ func (b *Board) calculateDist(p util.Point2D) map[rune]int {
 	return dist
 }
 
+func compactDeps(b *Board, deps map[rune][]rune) map[rune][]rune {
+	for ; ; {
+		hasAnythingChanged := false
+		newDeps := make(map[rune][]rune)
+		for from, tos := range deps {
+			for _, to := range tos {
+				if !isDoor(to) {
+					newDeps[from] = append(newDeps[from], to)
+					continue
+				}
+				hasAnythingChanged = true
+				for _, to1 := range deps[to] {
+					newDeps[from] = append(newDeps[from], to1)
+				}
+			}
+		}
+		deps = newDeps
+		if !hasAnythingChanged {
+			break
+		}
+	}
+
+	newDeps := make(map[rune][]rune)
+	for k := range b.keys {
+		if len(deps[k]) > 0 {
+			newDeps[k] = deps[k]
+		}
+	}
+	return newDeps
+}
+
 func topologicalOrders(deps map[rune][]rune) []string {
 	inDegree := make(map[rune]int)
 	all, free := make(map[rune]bool), make(map[rune]bool)
@@ -339,12 +379,12 @@ func findShortestPathHelper(
 			//fmt.Printf("Best Path: %d\n", currentLength)
 			fmt.Printf("Best Path (%d): %s\n", currentLength, string(currentPath))
 			/*
-			fmt.Printf("Best Path (%d): %s\n", currentLength, string(currentPath))
-			fmt.Print("\t")
-			for i := 0; i+1 < len(currentPath); i++ {
-				fmt.Printf("%c->%c: %d  ", currentPath[i], currentPath[i+1], dists[currentPath[i]][currentPath[i+1]])
-			}
-			fmt.Println()
+				fmt.Printf("Best Path (%d): %s\n", currentLength, string(currentPath))
+				fmt.Print("\t")
+				for i := 0; i+1 < len(currentPath); i++ {
+					fmt.Printf("%c->%c: %d  ", currentPath[i], currentPath[i+1], dists[currentPath[i]][currentPath[i+1]])
+				}
+				fmt.Println()
 			*/
 		}
 		return
