@@ -1,0 +1,23 @@
+NOT A J // J = IS A HOLE
+NOT B T // T = IS B HOLE
+OR T J // J = IS_HOLE(A) || IS_HOLE(B)
+NOT C T // T = IS_HOLE(C)
+OR T J // J = IS_HOLE(A) || IS_HOLE(B) || IS_HOLE(C)
+AND D J // J = (IS_HOLE(A) || IS_HOLE(B) || IS_HOLE(C)) && IS_GROUND(D)
+NOT I T
+NOT T T // T = IS_GROUND(I)
+OR F T // T = IS_GROUND(I) || IS_GROUND(F)
+AND E T // T = IS_GROUND(E) && (IS_GROUND(F) || IS_GROUND(I))
+OR H T // T = IS_GROUND(H) || (IS_GROUND(E) && IS_GROUND(I))
+AND T J // J = ...
+
+RUN
+
+
+J = (IS_HOLE(A) || IS_HOLE(B) || IS_HOLE(C)) && IS_GROUND(D)  && (IS_GROUND(H) or (IS_GROUND(E) && (IS_GROUND(I) or IS_GROUND(F))
+
+
+a && (b or c) = a&&b or a&&c
+
+
+(A && B) or (A && C) = A && (B or C)

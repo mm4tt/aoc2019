@@ -1,0 +1,7 @@
+NOT A J // J = IS A HOLE
+NOT B T // T = IS B HOLE
+OR T J // J = IS_HOLE(A) || IS_HOLE(B)
+NOT C T // T = IS_HOLE(C)
+OR T J // J = IS_HOLE(A) || IS_HOLE(B) || IS_HOLE(C)
+AND D J // J = (IS_HOLE(A) || IS_HOLE(B) || IS_HOLE(C)) && IS_GROUND(D)
+WALK
