@@ -11,6 +11,14 @@ func GCD(a, b int) int {
 	return Abs(a)
 }
 
+func ExtendedGCD(a, b int) (x, y, d int) {
+	if a == 0 {
+		return 0, 1, b
+	}
+	x1, y1, d := ExtendedGCD(b%a, a)
+	return y1 - (b/a)*x1, x1, d
+}
+
 func LMC(a ...int) int {
 	lcm := a[0]
 	for _, b := range a[1:] {
@@ -56,4 +64,17 @@ func Min(a, b int) int {
 
 func Ceil(a, b int) int {
 	return int(math.Ceil(float64(a) / float64(b)))
+}
+
+func SafeMultModulo(a, b, mod int) int {
+	res := 0
+	a = a % mod
+	for ; b > 0; {
+		if b%2 == 1 {
+			res = (res + a) % mod
+		}
+		a = (a * 2) % mod
+		b /= 2
+	}
+	return (mod + (res % mod)) % mod
 }
