@@ -31,3 +31,16 @@ func ReadLines(relativePath string) (<-chan string, error) {
 	}()
 	return output, nil
 }
+
+func ReadAllLines(relativePath string) ([]string, error) {
+	inputFile, err := os.Open(os.ExpandEnv(filepath.Join("$GOPATH/src/github.com/mm4tt/aoc2019/", relativePath)))
+	if err != nil {
+		return nil, err
+	}
+	scanner := bufio.NewScanner(inputFile)
+	ret := []string{}
+	for scanner.Scan() {
+		ret = append(ret, scanner.Text())
+	}
+	return ret, nil
+}
