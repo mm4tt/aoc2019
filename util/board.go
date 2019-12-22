@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"github.com/golang-collections/collections/queue"
 	"strings"
 )
 
@@ -66,6 +67,23 @@ func (b *Board) IsOnBoard(p Point2D) bool {
 	return 0 <= p.X && p.X < b.X && 0 <= p.Y && p.Y < b.Y
 }
 
+func (b *Board) CalculateDist(p Point2D, allowed ...func(rune) bool) map[Point2D]int {
+	dist := make(map[Point2D]int)
+	q := queue.New()
+	q.Enqueue(p)
+	dist[p] = 0
+	for ; q.Len() > 0; {
+		p := q.Dequeue().(Point2D)
+		for _, n := range b.Neighbours(p, allowed...) {
+			if _, ok := dist[n]; ok {
+				continue
+			}
+			dist[n] = dist[p] + 1
+			q.Enqueue(n)
+		}
+	}
+	return dist
+}
 
 func matches(r rune, matchers []func(rune) bool) bool {
 	if len(matchers) == 0 {
