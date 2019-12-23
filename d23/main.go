@@ -81,6 +81,7 @@ func main() {
 				}
 				c[0].Input(natMemory.x, natMemory.y)
 				lastSentY = natMemory.y
+				subsequentInputPrompts = 0
 			}
 		}
 	}
