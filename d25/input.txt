@@ -1,0 +1,43 @@
+south
+take ornament
+east
+west
+north
+east
+take sand
+east
+west
+west
+west
+north
+take wreath
+north
+north
+take spool of cat6
+south
+south
+east
+take fixed point
+west
+south
+south
+south
+take candy cane
+north
+east
+south
+north
+east
+south
+north
+east
+take space law space brochure
+south
+take fuel cell
+south
+inv
+drop candy cane
+drop ornament
+drop fuel cell
+drop spool of cat6
+west
